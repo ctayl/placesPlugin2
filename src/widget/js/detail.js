@@ -1,5 +1,7 @@
 import Buildfire, { components } from 'buildfire';
 import Handlebars from './lib/handlebars';
+import bookmarks from "./lib/bookmarkHandler";
+
 
 window.detailView = {
     init: (place) => {
@@ -47,6 +49,21 @@ window.detailView = {
                 mapTypeId: mapTypeId,
                 disableDefaultUI: true
             };
+
+            let bookmark = document.getElementById('detailViewBookmark');
+            const index = app.state.places.findIndex(statePlace => statePlace.id === place.id);
+            place.bookmarked ? bookmark.className = 'bookmark glyphicon-star' : bookmark.className = 'bookmark glyphicon-star-empty';
+            bookmark.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const callback = () => {
+                    place.bookmarked ? bookmark.className = 'bookmark glyphicon-star' : bookmark.className = 'bookmark glyphicon-star-empty';
+                    let marker = window.app.state.markers.filter(marker => marker.id === place.id)[0];
+                    window.mapView.markerClick(app.state.places[index], marker)
+                    
+                }
+                place.bookmarked ? bookmarks.delete(app.state, place, index, callback) : bookmarks.add(app.state, place, index, callback);
+
+            });
 
             /**
              * Get Directions

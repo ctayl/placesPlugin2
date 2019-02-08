@@ -37,11 +37,17 @@ const WebpackConfig = {
         use: { loader: 'babel-loader' }
       },
       {
-          test: /\.css$/,
-          use: ExtractTextPlugin.extract({
-              fallback: 'style-loader',
-              use: {loader: 'css-loader', options: {minimize: true}}
-          })
+        test: /\.css$/,
+        use: ExtractTextPlugin.extract({
+            fallback: 'style-loader',
+            use: {loader: 'css-loader', options: {minimize: true}}
+        })
+      },
+      { 
+        test: /\.(png|woff|woff2|eot|ttf|svg)$/, 
+        use: { 
+          loader: 'url-loader' 
+        } 
       }
     ]
   },

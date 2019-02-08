@@ -1,4 +1,6 @@
-import Handlebars from "./lib/handlebars"
+import Handlebars from "./lib/handlebars";
+import bookmarks from "./lib/bookmarkHandler";
+
 
 window.usa = {lat: 37.09024, lng: -95.712891};
 window.defaultLocation = usa;
@@ -111,6 +113,7 @@ window.mapView = {
         let marker = new google.maps.Marker({
             position: place.address,
             map: map,
+            id: place.id,
             icon: mapView.createMarker(iconType)
         });
 
@@ -158,6 +161,19 @@ window.mapView = {
             locationSummary.innerHTML = theCompiledHtml;
             locationSummary.className = 'animated slideInDown';
             locationSummary.style.height = '100px';
+
+            let bookmark = document.getElementById('locationSummaryBookmark');
+
+            const index = app.state.places.findIndex(statePlace => statePlace.id === place.id);
+            place.bookmarked ? bookmark.className = 'bookmark glyphicon-star' : bookmark.className = 'bookmark glyphicon-star-empty';
+            bookmark.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const callback = () => {
+                    place.bookmarked ? bookmark.className = 'bookmark glyphicon-star' : bookmark.className = 'bookmark glyphicon-star-empty';
+                }
+                place.bookmarked ? bookmarks.delete(app.state, place, index, callback) : bookmarks.add(app.state, place, index, callback);
+
+            });
 
             locationSummary.onclick = e => {
                 e.preventDefault();

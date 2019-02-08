@@ -1,4 +1,5 @@
 import "./lib/lazyload";
+import bookmarks from "./lib/bookmarkHandler";
 
 window.listView = {
     initialized: false,
@@ -38,76 +39,95 @@ window.listView = {
 
         places = places.sort(window.PlacesSort[window.app.state.sortBy]);
 
-        places.forEach((place, index) => {
+        bookmarks.sync(window.app.state, () => {
 
-            if (!place.address || !place.address.lat || !place.address.lng) {
-                return;
-            }
+            places.forEach((place, index) => {
+                console.log(window.app.state.places)
+                console.log(place)
 
-            const listItem = document.createElement('div');
-            listItem.setAttribute('style', `${window.listView.imageHeight}px !important`);
-            listItem.id = (place.id) ? `id_${place.id}` : '';
-            listItem.className = 'list-item';
+                if (!place.address || !place.address.lat || !place.address.lng) {
+                    return;
+                }
 
-            listItem.addEventListener('click', e => {
-                e.preventDefault();
-                window.app.state.selectedPlace.unshift(place);
-                window.router.navigate(window.app.settings.viewStates.detail);
+                const listItem = document.createElement('div');
+                listItem.setAttribute('style', `${window.listView.imageHeight}px !important`);
+                listItem.id = (place.id) ? `id_${place.id}` : '';
+                listItem.className = 'list-item';
+
+                listItem.addEventListener('click', e => {
+                    e.preventDefault();
+                    window.app.state.selectedPlace.unshift(place);
+                    window.router.navigate(window.app.settings.viewStates.detail);
+                });
+
+                //Add Image
+                const listImage = place.image ? place.image : window.listView.defaultImage;
+                const image = document.createElement('img');
+
+                image.setAttribute('data-src', window.listView.imagePrefix + listImage);
+                image.setAttribute('width', window.listView.imageWidth);
+                image.setAttribute('height', window.listView.imageHeight);
+                image.setAttribute('style', `${window.listView.imageHeight}px !important`);
+                image.className = 'lazyload';
+
+                const infoContainer = document.createElement('div');
+                infoContainer.className = 'list-info-container';
+
+                const title = document.createElement('div');
+                title.className = 'list-title';
+                title.innerHTML = place.title;
+                infoContainer.appendChild(title);
+
+                const subtitle = document.createElement('div');
+                let subtitleText = (place.subtitle && place.subtitle.length)
+                    ? place.subtitle : '';
+
+                subtitle.className = 'list-description';
+                subtitle.innerHTML = subtitleText;
+                infoContainer.appendChild(subtitle);
+
+                const viewBtn = document.createElement('img');
+                viewBtn.className = 'list-view-btn';
+                viewBtn.src = 'images/right-arrow.png';
+                infoContainer.appendChild(viewBtn);
+
+                const bookmark = document.createElement('i');
+                window.app.state.places[index].bookmarked ? bookmark.className = 'bookmark glyphicon-star' : bookmark.className = 'bookmark glyphicon-star-empty';
+                bookmark.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const callback = () => {
+                        window.listView.updateList(window.app.state.places);
+                    }
+                    place.bookmarked ? bookmarks.delete(app.state, place, index, callback) : bookmarks.add(app.state, place, index, callback);
+
+                });
+                infoContainer.appendChild(bookmark);
+
+                const address = document.createElement('div');
+                address.innerHTML = place.address;
+                // infoContainer.appendChild(address);
+
+                const distance = document.createElement('div');
+                distance.setAttribute('id', `distance-${place.id}`);
+                distance.innerHTML = (place.distance) ? place.distance : '...';
+                distance.className = 'list-distance';
+                infoContainer.appendChild(distance);
+
+                listItem.appendChild(image);
+                listItem.appendChild(infoContainer);
+                //listItem.appendChild(address);
+
+                window.listView.listScrollingContainer.appendChild(listItem);
             });
 
-            //Add Image
-            const listImage = place.image ? place.image : window.listView.defaultImage;
-            const image = document.createElement('img');
-
-            image.setAttribute('data-src', window.listView.imagePrefix + listImage);
-            image.setAttribute('width', window.listView.imageWidth);
-            image.setAttribute('height', window.listView.imageHeight);
-            image.setAttribute('style', `${window.listView.imageHeight}px !important`);
-            image.className = 'lazyload';
-
-            const infoContainer = document.createElement('div');
-            infoContainer.className = 'list-info-container';
-
-            const title = document.createElement('div');
-            title.className = 'list-title';
-            title.innerHTML = place.title;
-            infoContainer.appendChild(title);
-
-            const subtitle = document.createElement('div');
-            let subtitleText = (place.subtitle && place.subtitle.length)
-                ? place.subtitle : '';
-
-            subtitle.className = 'list-description';
-            subtitle.innerHTML = subtitleText;
-            infoContainer.appendChild(subtitle);
-
-            const viewBtn = document.createElement('img');
-            viewBtn.className = 'list-view-btn';
-            viewBtn.src = 'images/right-arrow.png';
-            infoContainer.appendChild(viewBtn);
-
-            const address = document.createElement('div');
-            address.innerHTML = place.address;
-            // infoContainer.appendChild(address);
-
-            const distance = document.createElement('div');
-            distance.setAttribute('id', `distance-${place.id}`);
-            distance.innerHTML = (place.distance) ? place.distance : '...';
-            distance.className = 'list-distance';
-            infoContainer.appendChild(distance);
-
-            listItem.appendChild(image);
-            listItem.appendChild(infoContainer);
-            //listItem.appendChild(address);
-
-            window.listView.listScrollingContainer.appendChild(listItem);
+            if (window.map) {
+                window.mapView.addMarkerCluster();
+            }
+    
+            window.lazyload();
         });
 
-        if (window.map) {
-            window.mapView.addMarkerCluster();
-        }
 
-        window.lazyload();
     },
     initList: (places) => {
         //Add filter control
@@ -117,6 +137,7 @@ window.listView = {
     },
     updateList: (newPlaces) => {
         console.log('called updateList()');
+        window.listView.listScrollingContainer.innerHTML = '';
         window.listView.addPlaces(newPlaces);
     },
     filter(placesToHide, placesToShow) {

@@ -40,7 +40,7 @@ window.listView = {
         places = places.sort(window.PlacesSort[window.app.state.sortBy]);
 
         bookmarks.sync(window.app.state, () => {
-
+            window.listView.listScrollingContainer.innerHTML = '';
             places.forEach((place, index) => {
                 console.log(window.app.state.places)
                 console.log(place)
@@ -92,13 +92,15 @@ window.listView = {
                 infoContainer.appendChild(viewBtn);
 
                 const bookmark = document.createElement('i');
+                bookmark.id = 'listView_bookmark_' + place.id;
                 window.app.state.places[index].bookmarked ? bookmark.className = 'bookmark glyphicon-star' : bookmark.className = 'bookmark glyphicon-star-empty';
+                
                 bookmark.addEventListener('click', (e) => {
                     e.stopPropagation();
                     const callback = () => {
-                        window.listView.updateList(window.app.state.places);
+                        window.app.state.places[index].bookmarked ? bookmark.className = 'bookmark glyphicon-star' : bookmark.className = 'bookmark glyphicon-star-empty';
                     }
-                    place.bookmarked ? bookmarks.delete(app.state, place, index, callback) : bookmarks.add(app.state, place, index, callback);
+                    window.app.state.places[index].bookmarked ? bookmarks.delete(app.state, place, index, callback) : bookmarks.add(app.state, place, index, callback);
 
                 });
                 infoContainer.appendChild(bookmark);
@@ -137,7 +139,7 @@ window.listView = {
     },
     updateList: (newPlaces) => {
         console.log('called updateList()');
-        window.listView.listScrollingContainer.innerHTML = '';
+
         window.listView.addPlaces(newPlaces);
     },
     filter(placesToHide, placesToShow) {

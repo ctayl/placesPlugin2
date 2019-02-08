@@ -162,17 +162,23 @@ window.mapView = {
             locationSummary.className = 'animated slideInDown';
             locationSummary.style.height = '100px';
 
-            let bookmark = document.getElementById('locationSummaryBookmark');
-
             const index = app.state.places.findIndex(statePlace => statePlace.id === place.id);
+
+            let bookmark = document.getElementById('locationSummaryBookmark');
             place.bookmarked ? bookmark.className = 'bookmark glyphicon-star' : bookmark.className = 'bookmark glyphicon-star-empty';
+
+            let listViewBookmark = document.getElementById('listView_bookmark_' + place.id);
+            
             bookmark.addEventListener('click', (e) => {
                 e.stopPropagation();
                 const callback = () => {
                     place.bookmarked ? bookmark.className = 'bookmark glyphicon-star' : bookmark.className = 'bookmark glyphicon-star-empty';
+                    window.app.state.places[index].bookmarked ? listViewBookmark.className = 'bookmark glyphicon-star' : listViewBookmark.className = 'bookmark glyphicon-star-empty';
                 }
                 place.bookmarked ? bookmarks.delete(app.state, place, index, callback) : bookmarks.add(app.state, place, index, callback);
 
+
+                // window.listView.updateList(window.app.state.places);
             });
 
             locationSummary.onclick = e => {

@@ -50,15 +50,20 @@ window.detailView = {
                 disableDefaultUI: true
             };
 
-            let bookmark = document.getElementById('detailViewBookmark');
             const index = app.state.places.findIndex(statePlace => statePlace.id === place.id);
+            
+            let bookmark = document.getElementById('detailViewBookmark');
             place.bookmarked ? bookmark.className = 'bookmark glyphicon-star' : bookmark.className = 'bookmark glyphicon-star-empty';
+            
+            let listViewBookmark = document.getElementById('listView_bookmark_' + place.id);
+            
             bookmark.addEventListener('click', (e) => {
                 e.stopPropagation();
                 const callback = () => {
-                    place.bookmarked ? bookmark.className = 'bookmark glyphicon-star' : bookmark.className = 'bookmark glyphicon-star-empty';
+                    window.app.state.places[index].bookmarked ? bookmark.className = 'bookmark glyphicon-star' : bookmark.className = 'bookmark glyphicon-star-empty';
                     let marker = window.app.state.markers.filter(marker => marker.id === place.id)[0];
-                    window.mapView.markerClick(app.state.places[index], marker)
+                    window.mapView.markerClick(app.state.places[index], marker);
+                    window.app.state.places[index].bookmarked ? listViewBookmark.className = 'bookmark glyphicon-star' : listViewBookmark.className = 'bookmark glyphicon-star-empty';
                     
                 }
                 place.bookmarked ? bookmarks.delete(app.state, place, index, callback) : bookmarks.add(app.state, place, index, callback);
